@@ -92,15 +92,24 @@ async fn solution_dir(dir: &str, preview: bool) -> Result<(), Box<dyn Error>> {
         .for_each(|path| { 
             println!("{} will be remove", path.display());
             count+=1;
-            if path.is_dir() {
-                if !preview {
-                    fs::remove_dir_all(path).unwrap();
+            match path.try_exists() {
+                Ok(exist) => {
+                    if exist {
+                        if path.is_dir() {
+                            if !preview {
+                                fs::remove_dir_all(path).unwrap();
+                            }
+                        } else {
+                            if !preview {
+                                fs::remove_file(path).unwrap();
+                            }
+                        }
+                    }
                 }
-            } else {
-                if !preview {
-                    fs::remove_file(path).unwrap();
+                Err(err) => {
+                    red_ln!("{} error: {}", path.display(), err)
                 }
-            }
+            
         });
     if !preview {
         green_ln!("{} files/folders removed", count);
